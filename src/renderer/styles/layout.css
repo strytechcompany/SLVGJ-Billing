@@ -1,0 +1,114 @@
+.pos-layout {
+  display: flex;
+  height: calc(100vh - 68px);
+  width: 100%;
+  padding: 10px 12px 12px 12px;
+  gap: 14px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow: visible;
+  height: 100%;
+}
+
+.search-item-hover:hover {
+  background: var(--primary-xlight) !important;
+}
+
+.search-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+.panel-left { flex: 0 0 260px; }
+.panel-center { flex: 1; }
+.panel-right { flex: 0 0 340px; }
+
+/* Scrollable areas within panels */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  margin-right: -6px;
+}
+
+.scroll-area::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Card-like sections within panels */
+.card-section {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.highlight-box {
+  background: var(--bg-light);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  margin-top: 10px;
+  border-left: 3px solid var(--primary-deep);
+}
+
+.total-amount {
+  font-size: 26px;
+  font-weight: 700;
+  text-align: right;
+  color: var(--primary-deep);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 18, 24, 0.50);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal-content {
+  background: white;
+  padding: 28px 30px;
+  border-radius: var(--radius-lg);
+  min-width: 440px;
+  max-width: 90%;
+  max-height: 90vh;
+  box-shadow: 0 20px 60px rgba(30, 18, 24, 0.16);
+  overflow-y: auto;
+  animation: modalSlide 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--border-color);
+}
+
+@keyframes modalSlide {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

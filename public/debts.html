@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debt Management - Sri Lakshmi Jewellers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <style>
+        /* ── CSS Variables (inlined so this page is self-contained in production) ── */
+        :root {
+            --primary-deep:   #C41E5E;
+            --primary-hover:  #9E1549;
+            --primary-xlight: #FDE8F0;
+            --accent-rose:    #FADADD;
+            --bg-light:       #FFF8FA;
+            --border-color:   #EDD5DF;
+            --text-main:      #1E1218;
+            --text-muted:     #72576A;
+            --font-pos:       'Poppins', sans-serif;
+            --font-display:   'Playfair Display', serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(150deg, #FFFFFF 0%, #FFF5F8 100%);
+            font-family: var(--font-pos);
+            color: var(--text-main);
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            font-family: var(--font-pos);
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 4px;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #C41E5E, #9E1549);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(196, 30, 94, 0.30);
+        }
+
+        .back-btn:hover {
+            transform: translateX(-2px);
+            box-shadow: 0 6px 16px rgba(196, 30, 94, 0.38);
+        }
+
+        .container {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 8px rgba(30, 18, 24, 0.06);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Search Bar */
+        .search-bar-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+
+        .search-input-box { position: relative; flex: 1; }
+
+        .search-input-box .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 15px;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .search-input-box input {
+            width: 100%;
+            padding: 12px 44px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: var(--font-pos);
+            background: #fff;
+            color: var(--text-main);
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .search-input-box input:focus {
+            border-color: var(--primary-deep);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(196, 30, 94, 0.12);
+        }
+
+        .search-input-box input::placeholder { color: var(--text-muted); opacity: 0.65; }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-xlight);
+            border: none;
+            border-radius: 6px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--primary-deep);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .clear-search-btn:hover { background: var(--accent-rose); }
+
+        .result-badge {
+            white-space: nowrap;
+            background: var(--primary-xlight);
+            color: var(--primary-hover);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .result-badge.visible { opacity: 1; }
+
+        .table-wrapper { flex: 1; overflow-y: auto; border-radius: 8px; }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+
+        th {
+            text-align: left;
+            padding: 10px 16px;
+            color: var(--primary-deep);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        td {
+            padding: 14px 16px;
+            background: #ffffff;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        td:first-child {
+            border-left: 1px solid var(--border-color);
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+            font-weight: 700;
+        }
+
+        td:last-child {
+            border-right: 1px solid var(--border-color);
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        tr:hover td { background: #FFF8FA; }
+
+        .amount-highlight { color: var(--primary-deep); font-weight: 700; }
+
+        .pay-btn {
+            background: linear-gradient(135deg, #C41E5E, #9E1549);
+            color: white;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(196, 30, 94, 0.28);
+        }
+
+        .pay-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(196, 30, 94, 0.36); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 18, 24, 0.50);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 36px;
+            border-radius: 12px;
+            width: 440px;
+            box-shadow: 0 20px 60px rgba(30, 18, 24, 0.16);
+            border: 1px solid var(--border-color);
+            animation: modalSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(20px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        .modal h2 { margin-bottom: 20px; color: var(--primary-deep); font-weight: 700; font-size: 18px; }
+
+        .customer-card {
+            background: var(--primary-xlight);
+            padding: 18px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-field { margin-bottom: 16px; }
+
+        .modal-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .modal-field input, .modal-field select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-family: var(--font-pos);
+            color: var(--text-main);
+            font-weight: 500;
+            background: #fff;
+        }
+
+        .modal-field input:focus, .modal-field select:focus {
+            border-color: var(--primary-deep);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(196, 30, 94, 0.12);
+        }
+
+        .calculated-row {
+            padding: 10px 14px;
+            background: #FFF8FA;
+            border-radius: 6px;
+            font-weight: 700;
+            color: var(--primary-deep);
+            margin-top: 8px;
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 13px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #C41E5E, #9E1549);
+            color: white;
+            box-shadow: 0 4px 12px rgba(196, 30, 94, 0.28);
+        }
+
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(196, 30, 94, 0.36); }
+        .submit-btn:disabled { opacity: 0.6; pointer-events: none; }
+
+        .cancel-btn { background: #FFF8FA; color: var(--text-muted); border: 1.5px solid var(--border-color); }
+        .cancel-btn:hover { background: var(--primary-xlight); color: var(--text-main); }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(196, 30, 94, 0.18); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(196, 30, 94, 0.32); }
+    </style>
+</head>
+<body>
+    <div class="header-row">
+        <div>
+            <h1 style="font-size:26px;color:#C41E5E;margin-bottom:3px;font-family:'Playfair Display',serif;font-weight:600;">Debt Ledger</h1>
+            <p style="font-size:13px;color:#72576A;font-weight:500;">Tracking outstanding balances for customers</p>
+        </div>
+        <button class="back-btn" id="backBtn">← Back to Billing</button>
+    </div>
+
+    <div class="container">
+        <!-- Search Bar -->
+        <div class="search-bar-wrapper">
+            <div class="search-input-box">
+                <span class="search-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </span>
+                <input
+                    type="text"
+                    id="debtSearch"
+                    placeholder="Search by Bill No or Customer Name..."
+                    autocomplete="off"
+                />
+                <button class="clear-search-btn" id="clearSearchBtn" title="Clear search">×</button>
+            </div>
+            <span class="result-badge" id="resultBadge">0 results</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="debtTable">
+                <thead>
+                    <tr>
+                        <th style="width:15%;">Bill ID</th>
+                        <th style="width:20%;">Customer</th>
+                        <th style="width:15%;">Phone</th>
+                        <th style="width:10%;">Total</th>
+                        <th style="width:10%;">Paid</th>
+                        <th style="width:10%;">Remaining</th>
+                        <th style="width:10%;">Date</th>
+                        <th style="width:10%;text-align:center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="debtBody">
+                    <!-- Data loaded via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal">
+            <h2>Collect Payment</h2>
+
+            <div class="customer-card">
+                <div id="modalCustomerName" style="font-size:17px;font-weight:700;color:#9E1549;margin-bottom:4px;"></div>
+                <div id="modalRemaining" style="font-size:22px;font-weight:800;color:#C41E5E;">₹0.00</div>
+                <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:#72576A;letter-spacing:0.8px;margin-top:2px;">Outstanding Balance</div>
+            </div>
+
+            <form id="paymentForm">
+                <input type="hidden" id="debtId">
+
+                <div class="modal-field">
+                    <label>Payment Method</label>
+                    <select id="paymentType" required>
+                        <option value="CASH">CASH</option>
+                        <option value="CARD">CARD</option>
+                        <option value="UPI">UPI</option>
+                        <option value="GOLD">GOLD (EXCHANGE)</option>
+                    </select>
+                </div>
+
+                <div id="standardFields">
+                    <div class="modal-field">
+                        <label>Amount Received (₹)</label>
+                        <input type="number" id="paymentAmount" step="0.01" min="0.01">
+                    </div>
+                </div>
+
+                <div id="goldFields" style="display:none;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="modal-field">
+                            <label>Gold Weight (g)</label>
+                            <input type="number" id="goldWeight" step="0.001" min="0">
+                        </div>
+                        <div class="modal-field">
+                            <label>Gold Rate (₹/g)</label>
+                            <input type="number" id="goldRate" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="calculated-row">Value: <span id="calcGoldAmount">₹0.00</span></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn" id="cancelBtn">Dismiss</button>
+                    <button type="submit" class="submit-btn">Submit Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        // ── Helpers ─────────────────────────────────────────────────────────
+        function escapeText(str) {
+            // Sanitise for textContent usage — this is a no-op safety wrapper;
+            // all data is inserted via textContent below (never innerHTML).
+            return String(str == null ? '' : str);
+        }
+
+        function formatRupees(val) {
+            return '₹' + Number(val).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // ── State ────────────────────────────────────────────────────────────
+        let allDebts    = [];
+        // Keyed map so we can retrieve the full debt object by debt_id
+        // without storing serialised JSON in the DOM (XSS risk).
+        let debtMap     = {};
+        let activeDebt  = null;  // debt currently open in the modal
+
+        // ── Navigation ──────────────────────────────────────────────────────
+        document.getElementById('backBtn').addEventListener('click', () => {
+            // Works in both Electron (file URL) and dev (Vite) because
+            // HashRouter treats everything after '#' as the route.
+            const base = window.location.href.split('debts.html')[0];
+            window.location.href = base + 'index.html#/pos';
+        });
+
+        // ── Data Fetch ───────────────────────────────────────────────────────
+        async function fetchDebts() {
+            try {
+                const debts = await window.api.debts.getDebts();
+                allDebts = debts || [];
+                debtMap  = {};
+                allDebts.forEach(d => { debtMap[d.debt_id] = d; });
+
+                const query = document.getElementById('debtSearch').value;
+                renderDebts(query ? allDebts.filter(d => matchesSearch(d, query)) : allDebts);
+            } catch (err) {
+                console.error('Failed to fetch debts:', err);
+            }
+        }
+
+        function matchesSearch(debt, query) {
+            const q = query.trim().toLowerCase();
+            return (
+                escapeText(debt.bill_id).toLowerCase().includes(q)        ||
+                escapeText(debt.customer_name).toLowerCase().includes(q)  ||
+                escapeText(debt.customer_phone).toLowerCase().includes(q)
+            );
+        }
+
+        // ── Render — all data goes through textContent, never innerHTML ──────
+        function renderDebts(debts) {
+            const tbody = document.getElementById('debtBody');
+            // Clear existing rows safely
+            while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+
+            if (!debts || debts.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 8;
+                td.style.cssText = 'text-align:center;padding:60px;color:#C41E5E;font-weight:600;';
+                const q = document.getElementById('debtSearch').value.trim();
+                td.textContent = q
+                    ? `No debts found matching "${q}".`
+                    : 'No active debts found in the system.';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
+            }
+
+            debts.forEach(debt => {
+                const date = new Date(debt.debt_date).toLocaleDateString('en-IN', {
+                    day: '2-digit', month: 'short', year: 'numeric'
+                });
+
+                const row = document.createElement('tr');
+
+                // Data cells — textContent only, no HTML injection
+                const cells = [
+                    escapeText(debt.bill_id),
+                    escapeText(debt.customer_name) || '--',
+                    escapeText(debt.customer_phone) || '--',
+                    formatRupees(debt.total_amount),
+                    formatRupees(debt.paid_amount),
+                    formatRupees(debt.remaining_amount),
+                    date,
+                ];
+
+                cells.forEach((text, idx) => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    if (idx === 5) td.className = 'amount-highlight'; // remaining
+                    row.appendChild(td);
+                });
+
+                // Action cell — button with event listener, no inline onclick
+                const actionTd = document.createElement('td');
+                actionTd.style.textAlign = 'center';
+                const btn = document.createElement('button');
+                btn.className   = 'pay-btn';
+                btn.textContent = 'Pay Now';
+                // Store only the debt_id on the DOM element — full object comes from debtMap
+                btn.dataset.debtId = debt.debt_id;
+                btn.addEventListener('click', () => openModal(debt.debt_id));
+                actionTd.appendChild(btn);
+                row.appendChild(actionTd);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // ── Search ───────────────────────────────────────────────────────────
+        document.getElementById('debtSearch').addEventListener('input', function () {
+            const q       = this.value;
+            const cleared = document.getElementById('clearSearchBtn');
+            const badge   = document.getElementById('resultBadge');
+
+            if (q.trim()) {
+                const filtered = allDebts.filter(d => matchesSearch(d, q));
+                renderDebts(filtered);
+                cleared.style.display = 'flex';
+                badge.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`;
+                badge.classList.add('visible');
+            } else {
+                renderDebts(allDebts);
+                cleared.style.display = 'none';
+                badge.classList.remove('visible');
+            }
+        });
+
+        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+            const input = document.getElementById('debtSearch');
+            input.value = '';
+            input.focus();
+            input.dispatchEvent(new Event('input'));
+        });
+
+        // ── Modal ────────────────────────────────────────────────────────────
+        const modal            = document.getElementById('paymentModal');
+        const paymentTypeSelect = document.getElementById('paymentType');
+        const standardFields   = document.getElementById('standardFields');
+        const goldFields       = document.getElementById('goldFields');
+        const goldWeightInput  = document.getElementById('goldWeight');
+        const goldRateInput    = document.getElementById('goldRate');
+        const calcGoldSpan     = document.getElementById('calcGoldAmount');
+
+        function openModal(debtId) {
+            const debt = debtMap[debtId];
+            if (!debt) return;
+            activeDebt = debt;
+
+            // textContent only — safe from XSS
+            document.getElementById('debtId').value = debt.debt_id;
+            document.getElementById('modalCustomerName').textContent = escapeText(debt.customer_name) || '--';
+            document.getElementById('modalRemaining').textContent    = formatRupees(debt.remaining_amount);
+
+            const amtInput = document.getElementById('paymentAmount');
+            amtInput.value = debt.remaining_amount;
+            amtInput.max   = debt.remaining_amount;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            activeDebt = null;
+            document.getElementById('paymentForm').reset();
+            updateVisibility();
+            const submitBtn = document.querySelector('.submit-btn');
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Payment'; }
+        }
+
+        // Close modal when clicking the overlay background
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+        function updateVisibility() {
+            const isGold = paymentTypeSelect.value === 'GOLD';
+            standardFields.style.display = isGold ? 'none'  : 'block';
+            goldFields.style.display     = isGold ? 'block' : 'none';
+            document.getElementById('paymentAmount').required = !isGold;
+            goldWeightInput.required = isGold;
+            goldRateInput.required   = isGold;
+        }
+
+        paymentTypeSelect.addEventListener('change', updateVisibility);
+
+        function recalculateGold() {
+            const val = (parseFloat(goldWeightInput.value) || 0) * (parseFloat(goldRateInput.value) || 0);
+            calcGoldSpan.textContent = formatRupees(val);
+        }
+
+        goldWeightInput.addEventListener('input', recalculateGold);
+        goldRateInput.addEventListener('input', recalculateGold);
+
+        // ── Payment Submission ───────────────────────────────────────────────
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = e.target.querySelector('.submit-btn');
+            if (submitBtn.disabled) return;
+
+            const debt_id      = document.getElementById('debtId').value;
+            const payment_type = paymentTypeSelect.value;
+
+            const payment = {
+                payment_type,
+                amount:      document.getElementById('paymentAmount').value,
+                gold_weight: goldWeightInput.value,
+                gold_rate:   goldRateInput.value,
+            };
+
+            submitBtn.disabled    = true;
+            submitBtn.textContent = 'Processing...';
+
+            try {
+                const res = await window.api.debts.applyDebtPayment(debt_id, payment);
+                submitBtn.disabled    = false;
+                submitBtn.textContent = 'Submit Payment';
+                if (res.success) {
+                    closeModal();
+                    fetchDebts();
+                }
+            } catch (err) {
+                // Use textContent on a custom alert instead of alert() for safety
+                submitBtn.disabled    = false;
+                submitBtn.textContent = 'Submit Payment';
+                const msg = document.createElement('div');
+                msg.style.cssText = 'color:#c0392b;font-size:13px;margin-top:8px;font-weight:600;';
+                msg.textContent   = 'Error: ' + (err.message || 'Payment failed');
+                // Insert above actions
+                const actions = document.querySelector('.modal-actions');
+                const existing = actions.previousSibling;
+                if (!existing || existing.tagName !== 'DIV' || !existing.style.color) {
+                    actions.parentNode.insertBefore(msg, actions);
+                }
+            }
+        });
+
+        // ── Init ─────────────────────────────────────────────────────────────
+        window.addEventListener('load', fetchDebts);
+    </script>
+</body>
+</html>

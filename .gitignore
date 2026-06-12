@@ -1,0 +1,31 @@
+# Environment / Secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Database files (live data — use backup/ exports instead)
+billing.db
+billing.db-shm
+billing.db-wal
+
+# Backups & exports
+backup/
+
+# Logs
+logs/
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.suo
+*.user

@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+
+:root {
+  /* Deep Rose & White — Professional Jewellery POS */
+  --primary-deep:   #C41E5E;   /* Main CTA, active states */
+  --primary-hover:  #9E1549;   /* Hover / pressed */
+  --primary-light:  #E8647E;   /* Gradient partner */
+  --primary-xlight: #FDE8F0;   /* Light tint for surfaces */
+  --accent-rose:    #FADADD;   /* Very light blush */
+  --bg-light:       #FFF8FA;   /* Near-white page bg */
+  --border-color:   #EDD5DF;   /* Soft pink-tinted border */
+
+  --glass-white:    #ffffff;
+  --glass-border:   #EDD5DF;
+  --bg-gradient:    linear-gradient(150deg, #FFFFFF 0%, #FFF5F8 100%);
+
+  --text-main:  #1E1218;   /* Near-black with warm undertone */
+  --text-muted: #72576A;   /* Warm grey-mauve */
+
+  --shadow-lg: 0 8px 32px rgba(30, 18, 24, 0.10);
+  --shadow-sm: 0 2px 8px rgba(30, 18, 24, 0.06);
+
+  --radius-lg:    12px;
+  --radius-md:    8px;
+  --radius-input: 6px;
+
+  --font-display: 'Playfair Display', serif;
+  --font-pos:     'Poppins', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-pos);
+  background: var(--bg-gradient);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Solid Panel Style — no glassmorphism */
+.panel {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+  transition: box-shadow 0.2s ease;
+}
+
+.panel:hover {
+  box-shadow: 0 6px 20px rgba(30, 18, 24, 0.09);
+}
+
+/* Button Base */
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #C41E5E 0%, #9E1549 100%);
+  color: white !important;
+  box-shadow: 0 4px 14px rgba(196, 30, 94, 0.30);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(196, 30, 94, 0.40);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(196, 30, 94, 0.25);
+}
+
+.btn-outline {
+  background: #ffffff;
+  border: 1.5px solid var(--primary-deep);
+  color: var(--primary-deep) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-outline:hover {
+  background: var(--primary-xlight);
+  transform: translateY(-1px);
+}
+
+/* Input Base */
+input {
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-input);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-family: var(--font-pos);
+  background: #ffffff;
+  transition: all 0.2s ease;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+input:focus {
+  border-color: var(--primary-deep);
+  box-shadow: 0 0 0 3px rgba(196, 30, 94, 0.12);
+  background: #ffffff;
+  outline: none;
+}
+
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.65;
+}
+
+/* Section Title */
+.section-title {
+  color: var(--text-muted) !important;
+  font-weight: 700 !important;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.section-title::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 14px;
+  background: linear-gradient(180deg, #C41E5E, #E8647E);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Header — solid white, no blur */
+.app-header {
+  background: #ffffff;
+  margin: 0;
+  border-radius: 0;
+  padding: 13px 24px;
+  box-shadow: 0 1px 0 var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Table Rows */
+table tr {
+  transition: background 0.12s ease;
+}
+
+table tr:hover {
+  background: rgba(253, 232, 240, 0.40);
+}
+
+/* Alternating cart rows */
+.cart-table-container tbody tr:nth-child(even) {
+  background: rgba(253, 232, 240, 0.15);
+}
+
+.cart-table-container tbody tr:nth-child(even):hover {
+  background: rgba(253, 232, 240, 0.40);
+}
+
+/* Modal close button hover */
+.modal-close-btn:hover {
+  background: rgba(196, 30, 94, 0.08) !important;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+  animation: fadeIn 0.3s ease-out forwards;
+}
