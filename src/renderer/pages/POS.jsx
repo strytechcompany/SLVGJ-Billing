@@ -23,6 +23,9 @@ const POS = () => {
     // ── UI STATE ───────────────────────────────────────────────────────
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(0); // 0=Closed, 1=Form, 2=Summary
     const [customer, setCustomer]             = useState({ name: '', phone: '', address: '' });
+    const [allCustomers, setAllCustomers]     = useState([]);
+    const [filteredCustomers, setFilteredCustomers] = useState([]);
+    const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
     const [lastSaleResult, setLastSaleResult] = useState(null);
     const [receiptHtml, setReceiptHtml]       = useState('');
     const [isPreviewOpen, setIsPreviewOpen]   = useState(false);
@@ -91,20 +94,22 @@ const POS = () => {
 
     const refreshData = async () => {
         try {
-            const [stats, currentCart, currentTotal, currentPayments, currentPaid] =
+            const [stats, currentCart, currentTotal, currentPayments, currentPaid, customersList] =
                 await Promise.all([
                     window.api.backup.getBackupStats(),
                     window.api.billing.getCart(),
                     window.api.billing.getCartTotal(),
                     window.api.payment.getPayments(),
                     window.api.payment.getTotalPaid(),
+                    window.api.customers.getAll()
                 ]);
 
             setBackupStats(stats);
-            setCart(currentCart);
-            setPayments(currentPayments);
-            setTotalPaid(currentPaid);
-            setSubtotal(currentTotal);
+            setCart(currentCart || []);
+            setPayments(currentPayments || []);
+            setTotalPaid(currentPaid || 0);
+            setSubtotal(currentTotal || 0);
+            setAllCustomers(customersList || []);
 
             if (gstEnabled) {
                 const cgst         = Math.round(currentTotal * 0.015 * 100) / 100;
@@ -117,6 +122,32 @@ const POS = () => {
         } catch (err) {
             toast.error(err.message);
         }
+    };
+
+    // ── CUSTOMER AUTOCOMPLETE ──────────────────────────────────────────
+    const handleCustomerChange = (field, value) => {
+        setCustomer(prev => ({ ...prev, [field]: value }));
+        
+        const q = value.toLowerCase().trim();
+        if (q.length > 0) {
+            const matches = allCustomers.filter(c => 
+                (c.name && c.name.toLowerCase().includes(q)) || 
+                (c.phone && String(c.phone).includes(q))
+            );
+            setFilteredCustomers(matches);
+            setShowCustomerDropdown(true);
+        } else {
+            setShowCustomerDropdown(false);
+        }
+    };
+
+    const selectCustomer = (c) => {
+        setCustomer({
+            name: c.name || '',
+            phone: c.phone || '',
+            address: c.address || ''
+        });
+        setShowCustomerDropdown(false);
     };
 
     // ── BILLING ACTIONS ────────────────────────────────────────────────
@@ -582,19 +613,80 @@ const POS = () => {
                 title="Customer Details"
                 footer={<Button variant="primary" fullWidth size="large" onClick={handleFinalize}>Confirm & Save Bill</Button>}
             >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <Input label="Full Name" value={customer.name} onChange={(e) => setCustomer(prev => ({ ...prev, name: e.target.value }))} required fullWidth placeholder="Customer's full name" />
-                    <Input label="Phone" value={customer.phone} onChange={(e) => setCustomer(prev => ({ ...prev, phone: e.target.value }))} fullWidth placeholder="Phone number" />
-                    <Input label="Address" value={customer.address} onChange={(e) => setCustomer(prev => ({ ...prev, address: e.target.value }))} fullWidth placeholder="Address (optional)" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
+                    <Input 
+                        label="Full Name" 
+                        value={customer.name} 
+                        onChange={(e) => handleCustomerChange('name', e.target.value)} 
+                        onFocus={() => { if (filteredCustomers.length > 0) setShowCustomerDropdown(true); }}
+                        required 
+                        fullWidth 
+                        placeholder="Customer's full name" 
+                    />
+                    <Input 
+                        label="Phone" 
+                        value={customer.phone} 
+                        onChange={(e) => handleCustomerChange('phone', e.target.value)} 
+                        onFocus={() => { if (filteredCustomers.length > 0) setShowCustomerDropdown(true); }}
+                        fullWidth 
+                        placeholder="Phone number" 
+                    />
+                    
+                    {showCustomerDropdown && filteredCustomers.length > 0 && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '140px', // Below the Name and Phone inputs roughly
+                            left: 0,
+                            right: 0,
+                            backgroundColor: 'white',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '8px',
+                            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            zIndex: 100
+                        }}>
+                            {filteredCustomers.map(c => (
+                                <div 
+                                    key={c.customer_id}
+                                    onClick={() => selectCustomer(c)}
+                                    style={{
+                                        padding: '12px 16px',
+                                        borderBottom: '1px solid #f0f0f0',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '2px'
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f7fafc'}
+                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                >
+                                    <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{c.name}</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                        {c.phone && <span>📞 {c.phone} </span>}
+                                        {c.address && <span style={{ marginLeft: '8px' }}>📍 {c.address}</span>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <Input 
+                        label="Address" 
+                        value={customer.address} 
+                        onChange={(e) => setCustomer(prev => ({ ...prev, address: e.target.value }))} 
+                        onFocus={() => setShowCustomerDropdown(false)}
+                        fullWidth 
+                        placeholder="Address (optional)" 
+                    />
                 </div>
             </Modal>
 
-            {/* ── SUCCESS MODAL ──────────────────────────────────────── */}
             <Modal
                 isOpen={isCheckoutOpen === 2}
                 onClose={() => { setIsCheckoutOpen(0); handleClearCart(); }}
                 title="Sale Completed"
-                footer={<Button fullWidth onClick={() => { setIsCheckoutOpen(0); handleClearCart(); }}>Close & New Bill</Button>}
+                footer={<Button fullWidth onClick={() => { setIsCheckoutOpen(0); handleClearCart(); }}>Submit</Button>}
             >
                 <div className="highlight-box" style={{ textAlign: 'center', marginBottom: '22px', padding: '24px' }}>
                     <div style={{ fontSize: '44px', marginBottom: '12px', color: '#276749' }}>

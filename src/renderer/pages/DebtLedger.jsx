@@ -16,6 +16,7 @@ const DebtLedger = () => {
     const [activeDebt, setActiveDebt] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('CASH');
     const [paymentAmount, setPaymentAmount] = useState('');
+    const [paymentSuccessResult, setPaymentSuccessResult] = useState(null);
     
     // Fetch debts on mount
     useEffect(() => {
@@ -65,6 +66,7 @@ const DebtLedger = () => {
         setIsPaymentModalOpen(false);
         setActiveDebt(null);
         setPaymentAmount('');
+        setPaymentSuccessResult(null);
     };
 
     const handlePaymentSubmit = async (e) => {
@@ -80,11 +82,21 @@ const DebtLedger = () => {
             const res = await window.api.debts.applyDebtPayment(activeDebt.debt_id, paymentData);
             if (res.success) {
                 toast.success('Payment applied successfully');
-                closePaymentModal();
+                setPaymentSuccessResult(res.saleResult);
                 fetchDebts();
             }
         } catch (err) {
             toast.error(err.message || 'Payment failed');
+        }
+    };
+
+    const handlePrint = async () => {
+        try {
+            if (!paymentSuccessResult) return;
+            const html = await window.api.receipt.generateHTML(paymentSuccessResult);
+            await window.api.print.printReceipt(html);
+        } catch (err) {
+            toast.error('Failed to print receipt: ' + err.message);
         }
     };
 
@@ -227,10 +239,30 @@ const DebtLedger = () => {
             <Modal
                 isOpen={isPaymentModalOpen}
                 onClose={closePaymentModal}
-                title="Collect Payment"
-                footer={null} // custom footer inside form
+                title={paymentSuccessResult ? "Payment Successful" : "Collect Payment"}
+                footer={paymentSuccessResult ? (
+                    <Button fullWidth onClick={closePaymentModal}>Submit</Button>
+                ) : null}
             >
-                {activeDebt && (
+                {paymentSuccessResult ? (
+                    <div className="highlight-box" style={{ textAlign: 'center', marginBottom: '22px', padding: '24px' }}>
+                        <div style={{ fontSize: '44px', marginBottom: '12px', color: '#276749' }}>
+                            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.2px', color: 'var(--text-muted)', marginBottom: '6px' }}>Receipt Number</div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary-deep)', fontFamily: 'var(--font-display)' }}>
+                            {paymentSuccessResult.bill_id}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px', marginTop: '16px' }}>
+                            <Button variant="outline" onClick={handlePrint}>
+                                Print Receipt
+                            </Button>
+                        </div>
+                    </div>
+                ) : activeDebt && (
                     <form onSubmit={handlePaymentSubmit}>
                         {/* Outstanding Balance Box */}
                         <div style={{

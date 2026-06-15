@@ -23,6 +23,9 @@ const printService = require('./services/printService');
 const logger = require('./services/logger');
 const goldRateService = require('./services/goldRateService');
 const authService = require('./services/authService');
+const inventoryService = require('./services/inventoryService');
+const customerService = require('./services/customerService');
+const reportService = require('./services/reportService');
 console.log('All services loaded.');
 
 let mainWindow;
@@ -184,6 +187,29 @@ ipcMain.handle('get-debts', async () => {
 ipcMain.handle('pay-debt', async (_event, data) => {
   const debtService = require('./services/debtService');
   return debtService.applyDebtPayment(data.debt_id, data.payment);
+});
+
+// Inventory Handlers
+ipcMain.handle('inventory:getAll', async () => {
+  return inventoryService.getAllProducts();
+});
+
+ipcMain.handle('inventory:sync', async () => {
+  return inventoryService.syncExternalStock();
+});
+
+// Customer Handlers
+ipcMain.handle('customers:getAll', async () => {
+  return customerService.getAllCustomers();
+});
+
+ipcMain.handle('customers:add', async (_event, data) => {
+  return customerService.addCustomer(data);
+});
+
+// Report Handlers
+ipcMain.handle('reports:getBills', async () => {
+  return reportService.getAllBills();
 });
 
 // Auth Handlers

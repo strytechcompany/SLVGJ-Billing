@@ -162,28 +162,41 @@ function finalizeSale(customer, gstEnabled = true) {
   const bill_id = billNumber.generateBillNumber();
   const now     = new Date().toISOString();
 
-  // ── 8. Atomic transaction ──────────────────────────────────────────
-  // Generate a customer_id without mutating the caller's object
-  const custId = customer.customer_id || uuidv4();
+  let finalCustId = customer.customer_id;
 
+  // ── 8. Atomic transaction ──────────────────────────────────────────
   const executeSale = db.transaction(() => {
+    
+    if (!finalCustId) {
+      const existing = db.prepare(`
+          SELECT customer_id FROM customers 
+          WHERE LOWER(name) = LOWER(?) 
+             OR (phone IS NOT NULL AND phone != '' AND phone = ?)
+      `).get(customer.name.trim(), customer.phone ? customer.phone.trim() : '');
+      
+      if (existing) {
+          finalCustId = existing.customer_id;
+      } else {
+          finalCustId = uuidv4();
+      }
+    }
 
     // 8a. Upsert customer (ensures FK target exists)
     stmts.upsertCustomer.run({
-      customer_id: custId,
-      name:        customer.name,
-      phone:       customer.phone || null,
-      address:     customer.address || null,
+      customer_id: finalCustId,
+      name:        customer.name.trim(),
+      phone:       customer.phone ? customer.phone.trim() : null,
+      address:     customer.address ? customer.address.trim() : null,
     });
 
     // 8b. Insert bill
     stmts.insertBill.run({
       bill_id,
       bill_datetime:    now,
-      customer_id:      custId,
-      customer_name:    customer.name,
-      customer_phone:   customer.phone || null,
-      customer_address: customer.address || null,
+      customer_id:      finalCustId,
+      customer_name:    customer.name.trim(),
+      customer_phone:   customer.phone ? customer.phone.trim() : null,
+      customer_address: customer.address ? customer.address.trim() : null,
       subtotal,
       making_charges:   makingCharges,
       cgst_amount:      cgst,
@@ -228,7 +241,7 @@ function finalizeSale(customer, gstEnabled = true) {
       stmts.insertDebt.run({
         debt_id:          uuidv4(),
         bill_id,
-        customer_id:      custId,
+        customer_id:      finalCustId,
         total_amount:     finalNetAmount,
         paid_amount:      totalPaid,
         remaining_amount: remaining,
@@ -262,7 +275,7 @@ function finalizeSale(customer, gstEnabled = true) {
   // ── 10. Return complete sale summary for receipt generation ─────────
   const summary = {
     bill_id,
-    customer:        { ...customer, customer_id: custId },  // never mutate the input
+    customer:        { ...customer, name: customer.name.trim(), phone: customer.phone ? customer.phone.trim() : null, customer_id: finalCustId },  // never mutate the input
     items:           cartItems,
     payments:        storedPayments,
     subtotal,

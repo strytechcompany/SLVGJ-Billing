@@ -40,5 +40,16 @@ contextBridge.exposeInMainWorld('api', {
     sendOTP: (email) => ipcRenderer.invoke('auth:sendOTP', email),
     verifyOTP: (email, otp) => ipcRenderer.invoke('auth:verifyOTP', email, otp),
     register: (email) => ipcRenderer.invoke('auth:register', email),
+  },
+  inventory: {
+    getAll: () => ipcRenderer.invoke('inventory:getAll'),
+    sync: () => ipcRenderer.invoke('inventory:sync')
+  },
+  customers: {
+    getAll: () => ipcRenderer.invoke('customers:getAll'),
+    add: (data) => ipcRenderer.invoke('customers:add', data)
+  },
+  reports: {
+    getBills: () => ipcRenderer.invoke('reports:getBills')
   }
 });
