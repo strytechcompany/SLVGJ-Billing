@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import CartTable from '../components/CartTable';
+import OldGoldTable from '../components/OldGoldTable';
 import PaymentPanel from '../components/PaymentPanel';
 import Modal from '../components/Modal';
 import Layout from '../components/Layout';
@@ -381,7 +382,7 @@ const POS = () => {
 
             <main className="pos-layout">
                 {/* ── LEFT PANEL ────────────────────────────────────────── */}
-                <section className="panel panel-left">
+                <section className="panel panel-left" style={{ margin: 0, padding: '16px', flex: '0 0 280px', overflowY: 'auto' }}>
 
                     {/* Product Search */}
                     <div className="section" style={{ position: 'relative' }}>
@@ -513,10 +514,23 @@ const POS = () => {
                     </div>
                 </section>
 
-                {/* ── CENTER PANEL ─────────────────────────────────────── */}
-                <section className="panel panel-center" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <CartTable items={cart} onRemove={handleRemoveItem} onClear={handleClearCart} />
-                </section>
+                {/* ── CENTER COLUMN (Cart + Old Gold) ───────────────────── */}
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '14px', minWidth: 0, minHeight: 0 }}>
+                    {/* ── SHOPPING CART ─────────────────────────────────────── */}
+                    <section className="panel panel-center" style={{ display: 'flex', flexDirection: 'column', margin: 0, flex: 1, minHeight: 0, padding: '16px', overflow: 'hidden' }}>
+                        <CartTable items={cart} onRemove={handleRemoveItem} onClear={handleClearCart} />
+                    </section>
+
+                    {/* ── OLD GOLD RECEIPT ──────────────────────────────────── */}
+                    <section className="panel" style={{ margin: 0, padding: '16px', flexShrink: 0 }}>
+                        <OldGoldTable
+                            payments={payments}
+                            onAddOldGold={handleAddPayment}
+                            onRemovePayment={handleRemovePayment}
+                            goldRate={goldRate}
+                        />
+                    </section>
+                </div>
 
                 {/* ── RIGHT PANEL (PAYMENT) ──────────────────────────────── */}
                 <section className="panel panel-right">

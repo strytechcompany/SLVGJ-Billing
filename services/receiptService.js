@@ -85,15 +85,18 @@ function generateReceiptHTML(saleData) {
 
   const oldGoldRows = oldGoldPayments.length
     ? oldGoldPayments.map((p, i) => {
-        const w = p.gold_weight || 0;
+        const part = p.particulars || 'Old Gold (Exchange)';
+        const gw = p.gross_weight || p.gold_weight || 0;
+        const sw = p.stone_weight || 0;
+        const nw = p.net_weight || p.gold_weight || 0;
         const r = p.gold_rate || 0;
         return `
         <tr>
           <td style="text-align:left;padding:4px 6px;">${i + 1}.</td>
-          <td style="text-align:left;padding:4px 6px;">Old Gold (Exchange)</td>
-          <td style="text-align:center;padding:4px 6px;">${grams(w)}</td>
-          <td style="text-align:center;padding:4px 6px;">-</td>
-          <td style="text-align:center;padding:4px 6px;">${grams(w)}</td>
+          <td style="text-align:left;padding:4px 6px;">${part}</td>
+          <td style="text-align:center;padding:4px 6px;">${grams(gw)}</td>
+          <td style="text-align:center;padding:4px 6px;">${grams(sw)}</td>
+          <td style="text-align:center;padding:4px 6px;">${grams(nw)}</td>
           <td style="text-align:right;padding:4px 6px;">${rupees(r)}</td>
           <td style="text-align:right;padding:4px 6px;">-</td>
           <td style="text-align:right;padding:4px 6px;font-weight:600;">${rupees(p.amount)}</td>
@@ -141,6 +144,7 @@ function generateReceiptHTML(saleData) {
       font-size: 12px;
       color: #111;
       width: 5.8in;
+      margin: 0 auto;
       padding: 12px;
       line-height: 1.4;
     }

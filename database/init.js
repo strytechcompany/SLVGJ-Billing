@@ -87,7 +87,7 @@ function initDatabase() {
         total           REAL NOT NULL CHECK (total >= 0),
 
         FOREIGN KEY (bill_id)     REFERENCES bills    (bill_id)     ON DELETE CASCADE,
-        FOREIGN KEY (product_id)  REFERENCES products (product_id)  ON DELETE CASCADE
+        FOREIGN KEY (product_id)  REFERENCES products (product_id)  ON DELETE SET NULL
       );
     `);
 
@@ -173,9 +173,45 @@ function initDatabase() {
     const migrations = [
       `ALTER TABLE products   ADD COLUMN buying_price  REAL DEFAULT 0`,
       `ALTER TABLE bill_items ADD COLUMN selling_price REAL DEFAULT 0`,
+      `ALTER TABLE payments   ADD COLUMN particulars   TEXT`,
+      `ALTER TABLE payments   ADD COLUMN gross_weight  REAL DEFAULT 0`,
+      `ALTER TABLE payments   ADD COLUMN stone_weight  REAL DEFAULT 0`,
+      `ALTER TABLE payments   ADD COLUMN net_weight    REAL DEFAULT 0`,
+      `ALTER TABLE debt_transactions ADD COLUMN particulars   TEXT`,
+      `ALTER TABLE debt_transactions ADD COLUMN gross_weight  REAL DEFAULT 0`,
+      `ALTER TABLE debt_transactions ADD COLUMN stone_weight  REAL DEFAULT 0`,
+      `ALTER TABLE debt_transactions ADD COLUMN net_weight    REAL DEFAULT 0`,
     ];
     for (const sql of migrations) {
       try { db.exec(sql); } catch (_) { /* column already exists */ }
+    }
+
+    // Migration for bill_items ON DELETE SET NULL
+    const tableInfo = db.prepare("PRAGMA foreign_key_list(bill_items)").all();
+    const hasCascade = tableInfo.some(fk => fk.table === 'products' && fk.on_delete === 'CASCADE');
+    if (hasCascade) {
+      db.exec(`
+        CREATE TABLE _bill_items_new (
+          id              TEXT PRIMARY KEY,
+          bill_id         TEXT NOT NULL,
+          product_id      TEXT,
+          item_name       TEXT NOT NULL,
+          gross_weight    REAL,
+          stone_weight    REAL DEFAULT 0,
+          net_weight      REAL,
+          purity          TEXT,
+          rate            REAL,
+          making_charge   REAL DEFAULT 0,
+          selling_price   REAL DEFAULT 0,
+          total           REAL NOT NULL CHECK (total >= 0),
+          FOREIGN KEY (bill_id)     REFERENCES bills    (bill_id)     ON DELETE CASCADE,
+          FOREIGN KEY (product_id)  REFERENCES products (product_id)  ON DELETE SET NULL
+        );
+        INSERT INTO _bill_items_new SELECT * FROM bill_items;
+        DROP TABLE bill_items;
+        ALTER TABLE _bill_items_new RENAME TO bill_items;
+        CREATE INDEX IF NOT EXISTS idx_bill_items_bill_id   ON bill_items (bill_id);
+      `);
     }
   });
 

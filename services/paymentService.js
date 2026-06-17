@@ -54,10 +54,21 @@ function addPayment(payment, totalBill) {
   let amount;
   let gold_weight = 0;
   let gold_rate   = 0;
+  
+  // New detailed fields for Old Gold
+  let particulars = '';
+  let gross_weight = 0;
+  let stone_weight = 0;
+  let net_weight = 0;
 
   if (type === 'GOLD') {
-    gold_weight = payment.gold_weight;
+    gold_weight = payment.gold_weight || payment.net_weight; // fallback
     gold_rate   = payment.gold_rate;
+    
+    particulars = payment.particulars || 'Old Gold (Exchange)';
+    gross_weight = typeof payment.gross_weight === 'number' ? payment.gross_weight : gold_weight;
+    stone_weight = typeof payment.stone_weight === 'number' ? payment.stone_weight : 0;
+    net_weight   = typeof payment.net_weight === 'number' ? payment.net_weight : gold_weight;
 
     if (typeof gold_weight !== 'number' || gold_weight <= 0) {
       throw new Error('Gold payment requires gold_weight > 0.');
@@ -78,10 +89,10 @@ function addPayment(payment, totalBill) {
     amount = round2(amount);
   }
 
-  // ── 3. Prevent overpayment ──────────────────────────────────────────
+  // ── 3. Prevent overpayment (except for GOLD) ────────────────────────
   const remaining = calculateRemaining(totalBill);
 
-  if (amount > round2(remaining + 0.01)) {
+  if (type !== 'GOLD' && amount > round2(remaining + 0.01)) {
     // tiny tolerance for floating-point rounding
     logger.error('Payment addition failed - exceeds balance', { amount, remaining });
     throw new Error(
@@ -96,6 +107,10 @@ function addPayment(payment, totalBill) {
     amount,
     gold_weight,
     gold_rate,
+    particulars,
+    gross_weight,
+    stone_weight,
+    net_weight,
     created_at: new Date().toISOString(),
   };
 
@@ -133,11 +148,6 @@ function calculateRemaining(totalBill) {
   }
 
   const remaining = round2(totalBill - getTotalPaid());
-
-  if (remaining < 0) {
-    throw new Error('Overpayment detected – total paid exceeds the bill.');
-  }
-
   return remaining;
 }
 
@@ -155,6 +165,19 @@ function clearPayments() {
   payments = [];
 }
 
+/**
+ * Remove a specific payment by ID.
+ */
+function removePayment(id) {
+  const index = payments.findIndex(p => p.id === id);
+  if (index !== -1) {
+    payments.splice(index, 1);
+    logger.info('Payment removed', { id });
+    return true;
+  }
+  return false;
+}
+
 // ════════════════════════════════════════════════════════════════════════
 //  EXPORTS
 // ════════════════════════════════════════════════════════════════════════
@@ -165,4 +188,5 @@ module.exports = {
   calculateRemaining,
   getPayments,
   clearPayments,
+  removePayment,
 };

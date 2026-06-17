@@ -71,7 +71,7 @@ const PaymentPanel = ({ subtotal, totalBill, gstEnabled, payments, onAddPayment,
 
         {/* Mode selector */}
         <div style={{ display: 'flex', marginBottom: '16px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-          {['CASH', 'UPI', 'CARD', 'GOLD'].map((m) => (
+          {['CASH', 'UPI', 'CARD'].map((m) => (
             <button
               key={m}
               onClick={() => setMethod(m)}
@@ -106,12 +106,6 @@ const PaymentPanel = ({ subtotal, totalBill, gstEnabled, payments, onAddPayment,
           border: '1px solid var(--border-color)',
           marginBottom: '10px'
         }}>
-          {method === 'GOLD' ? (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Input label="Weight (g)" value={goldWeight} onChange={(e) => setGoldWeight(e.target.value)} type="number" fullWidth />
-              <Input label="Rate (₹/g)" value={goldRate} onChange={(e) => setGoldRate(e.target.value)} type="number" fullWidth />
-            </div>
-          ) : (
             <Input
               label={`Amount — ${method}`}
               value={amount}
@@ -120,12 +114,11 @@ const PaymentPanel = ({ subtotal, totalBill, gstEnabled, payments, onAddPayment,
               fullWidth
               placeholder="Enter amount..."
             />
-          )}
           <Button
             fullWidth
             variant="primary"
             onClick={handleAdd}
-            disabled={method === 'GOLD' ? (!goldWeight || !goldRate) : !amount}
+            disabled={!amount}
             style={{ marginTop: '4px' }}
           >
             + Add Payment

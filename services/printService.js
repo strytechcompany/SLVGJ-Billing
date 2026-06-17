@@ -101,17 +101,29 @@ function printReceipt(html, options = {}) {
         setTimeout(() => {
           const mergedOptions = { ...PRINT_OPTIONS, ...options };
 
-          win.webContents.print(mergedOptions, (success, failureReason) => {
-            if (success) {
-              logger.info('Receipt printed successfully');
+          try {
+            const printPromise = win.webContents.print(mergedOptions);
+            if (printPromise && typeof printPromise.then === 'function') {
+              printPromise.then(() => {
+                logger.info('Receipt printed successfully');
+                cleanup(win);
+                resolve(true);
+              }).catch(err => {
+                logger.error('Print subsystem error', { err });
+                cleanup(win);
+                reject(new Error(`Print failed: ${err.message}`));
+              });
+            } else {
+              // Fallback for older electron versions (just in case)
+              logger.info('Receipt printed successfully (sync)');
               cleanup(win);
               resolve(true);
-            } else {
-              logger.error('Print subsystem error', { failureReason });
-              cleanup(win);
-              reject(new Error(`Print failed: ${failureReason}`));
             }
-          });
+          } catch (err) {
+            logger.error('Print subsystem exception', { err });
+            cleanup(win);
+            reject(new Error(`Print failed: ${err.message}`));
+          }
         }, LOAD_DELAY_MS);
       });
 

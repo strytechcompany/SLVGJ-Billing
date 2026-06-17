@@ -63,6 +63,10 @@ const stmts = {
      WHERE product_id = ? AND stock > 0
   `),
 
+  deleteProduct: db.prepare(`
+    DELETE FROM products WHERE product_id = ?
+  `),
+
   checkStock: db.prepare(`
     SELECT stock FROM products WHERE product_id = ?
   `),
@@ -153,10 +157,8 @@ function finalizeSale(customer, gstEnabled = true) {
   const totalPaid = payment.getTotalPaid();
   const remaining = round2(finalNetAmount - totalPaid);
 
-  if (remaining < 0) {
-    logger.error('Checkout failed - overpayment detected', { totalPaid, finalNetAmount });
-    throw new Error('Overpayment detected – total paid exceeds the bill.');
-  }
+  // Allow overpayment (e.g. Old Gold exchange value > bill value)
+  // No error thrown here.
 
   // ── 7. Generate IDs ────────────────────────────────────────────────
   const bill_id = billNumber.generateBillNumber();
@@ -249,10 +251,17 @@ function finalizeSale(customer, gstEnabled = true) {
       });
     }
 
-    // 8f. Reduce stock for every product in the cart
+    // 8f. Reduce stock and completely delete the product if stock reaches 0
     for (const item of cartItems) {
       if (item.product_id) {
         stmts.reduceStock.run(item.product_id);
+        const product = stmts.checkStock.get(item.product_id);
+        if (product && product.stock <= 0) {
+          stmts.deleteProduct.run(item.product_id);
+          logger.info('Product automatically removed from database after sale', { product_id: item.product_id });
+        } else if (!product) {
+          // If it somehow doesn't exist anymore
+        }
       }
     }
   });

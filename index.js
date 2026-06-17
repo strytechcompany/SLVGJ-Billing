@@ -90,7 +90,7 @@ function autoSeedIfEmpty() {
 }
 
 app.whenReady().then(() => {
-  autoSeedIfEmpty();
+  // autoSeedIfEmpty();
   createWindow();
 
   app.on('activate', () => {
@@ -154,6 +154,10 @@ ipcMain.handle('payment:calculateRemaining', async (event, total) => {
 
 ipcMain.handle('payment:clearPayments', async () => {
   return paymentService.clearPayments();
+});
+
+ipcMain.handle('payment:removePayment', async (event, id) => {
+  return paymentService.removePayment(id);
 });
 
 ipcMain.handle('checkout:finalizeSale', async (event, customer, gstEnabled) => {
@@ -223,4 +227,10 @@ ipcMain.handle('auth:verifyOTP', async (event, email, otp) => {
 
 ipcMain.handle('auth:register', async (event, email) => {
     return authService.register(email);
+});
+
+// Rates Sync Handlers
+ipcMain.handle('rates:fetchFromMongo', async () => {
+    const rateSyncService = require('./services/rateSyncService');
+    return rateSyncService.fetchRatesFromMongo();
 });

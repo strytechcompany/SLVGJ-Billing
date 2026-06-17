@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('api', {
     getTotalPaid: () => ipcRenderer.invoke('payment:getTotalPaid'),
     calculateRemaining: (total) => ipcRenderer.invoke('payment:calculateRemaining', total),
     clearPayments: () => ipcRenderer.invoke('payment:clearPayments'),
+    removePayment: (id) => ipcRenderer.invoke('payment:removePayment', id),
   },
   checkout: {
     finalizeSale: (customer, gstEnabled) => ipcRenderer.invoke('checkout:finalizeSale', customer, gstEnabled),
@@ -51,5 +52,8 @@ contextBridge.exposeInMainWorld('api', {
   },
   reports: {
     getBills: () => ipcRenderer.invoke('reports:getBills')
+  },
+  rates: {
+    fetchFromMongo: () => ipcRenderer.invoke('rates:fetchFromMongo')
   }
 });
